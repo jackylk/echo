@@ -11,6 +11,7 @@ from neuromemory_client import NeuroMemoryClient
 from echo.config import get_settings
 from echo.knowledge.graph import KnowledgeGraph
 from echo.knowledge.path import LearningPath
+from echo.profile import UserProfile
 from echo.utils.prompts import SYSTEM_PROMPT, build_context_prompt
 
 logger = logging.getLogger(__name__)
@@ -36,6 +37,7 @@ class EchoAgent:
         user_id: str,
         neuromemory_api_key: Optional[str] = None,
         claude_api_key: Optional[str] = None,
+        user_name: Optional[str] = None,
     ):
         """Initialize Echo agent
 
@@ -43,11 +45,14 @@ class EchoAgent:
             user_id: Unique user identifier
             neuromemory_api_key: NeuroMemory API key (optional, from env)
             claude_api_key: Claude API key (optional, from env)
+            user_name: User display name (optional, for profile generation)
         """
         settings = get_settings()
 
         self.user_id = user_id
+        self.user_name = user_name or user_id
         self.session_id = None  # Will be set on first interaction
+        self._conversation_count = 0  # Track conversations for profile updates
 
         # Initialize NeuroMemory client
         self.memory = NeuroMemoryClient(
@@ -63,6 +68,14 @@ class EchoAgent:
         # Initialize knowledge components
         self.knowledge_graph = KnowledgeGraph(self.memory, user_id)
         self.learning_path = LearningPath(self.memory, user_id)
+
+        # Initialize user profile manager
+        self.profile = UserProfile(self.memory, user_id)
+
+        # Load existing profile for quick context
+        self.profile_content = self.profile.load()
+        if self.profile_content:
+            logger.info(f"Loaded existing profile for user: {user_id}")
 
         # Enable auto memory extraction
         try:
@@ -156,6 +169,10 @@ class EchoAgent:
             self.knowledge_graph.build_from_data(topic, graph_data)
 
             logger.info(f"Knowledge graph built for {topic}")
+
+            # Update profile after significant learning event
+            self.update_profile()
+
             return graph_data
 
         except Exception as e:
@@ -244,6 +261,9 @@ class EchoAgent:
             # Extract and link to knowledge graph
             self._link_resource_to_knowledge(doc)
 
+            # Update profile after adding resource
+            self.update_profile()
+
             return doc
 
         except Exception as e:
@@ -295,6 +315,36 @@ class EchoAgent:
 
         return questions
 
+    def update_profile(self) -> str:
+        """Update user's ECHO.md profile
+
+        Returns:
+            Path to the updated profile file
+
+        Example:
+            >>> agent.update_profile()
+            '/Users/alice/.echo/profiles/alice_ECHO.md'
+        """
+        logger.info(f"Updating profile for user: {self.user_id}")
+
+        try:
+            self.profile.update(user_name=self.user_name)
+            self.profile_content = self.profile.load()
+            logger.info("Profile updated successfully")
+            return str(self.profile.profile_path)
+
+        except Exception as e:
+            logger.error(f"Failed to update profile: {e}")
+            return ""
+
+    def get_profile_path(self) -> str:
+        """Get path to user's ECHO.md profile
+
+        Returns:
+            Absolute path to profile file
+        """
+        return str(self.profile.profile_path)
+
     # ========== Private Helper Methods ==========
 
     def _get_context(self, message: str) -> dict:
@@ -323,6 +373,15 @@ class EchoAgent:
                     {"role": "assistant", "content": assistant_response}
                 ]
             )
+
+            # Update conversation counter
+            self._conversation_count += 1
+
+            # Update profile every 10 conversations
+            if self._conversation_count % 10 == 0:
+                logger.info("Triggering profile update after 10 conversations")
+                self.update_profile()
+
         except Exception as e:
             logger.warning(f"Failed to store conversation: {e}")
 

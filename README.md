@@ -44,6 +44,12 @@ Echo 自动：
 - 推荐相关项目实践
 - 推荐学习伙伴
 
+### 5. 学习档案管理 (ECHO.md)
+- 自动生成个性化学习档案
+- 记录学习偏好、技能树、兴趣领域
+- 提供记忆查询指南
+- 详细数据存储在 NeuroMemory 后端
+
 ## 技术架构
 
 ```
@@ -94,11 +100,15 @@ cp .env.example .env
 # 启动 Echo CLI
 echo chat
 
+# 查看/更新用户学习档案
+echo profile --update
+
 # 或者使用 Python API
 python
 >>> from echo import EchoAgent
 >>> agent = EchoAgent(user_id="your_name")
 >>> agent.chat("我想学习 Rust 编程语言")
+>>> agent.update_profile()  # 更新学习档案
 ```
 
 ## 使用场景
@@ -173,6 +183,39 @@ Echo:
 - 并发编程
 
 要我生成学习计划吗？
+```
+
+### 场景 4: 查看学习档案
+```bash
+$ echo profile
+
+# 显示 ECHO.md 内容
+## 👤 基本信息
+- **用户 ID**: `alice`
+- **档案创建**: 2024-01-15
+- **最后更新**: 2024-01-20 14:30
+
+## 🎯 学习偏好
+- **学习风格**: 实战为主
+- **首选语言**: 中文
+- **每日学习时间**: 2 小时
+
+## 🌳 技能树
+### 已掌握 ✅
+- Python 编程
+- FastAPI 框架
+- PostgreSQL 数据库
+
+### 学习中 📚
+- Rust 编程语言
+- Kubernetes 容器编排
+
+## 📝 重要笔记
+- 正在学习 Rust 的所有权系统
+- 计划用 Rust 重写项目后端
+
+## 🔍 记忆查询指南
+详见档案中的 Python 代码示例，教你如何查询详细记忆数据
 ```
 
 ## 项目结构

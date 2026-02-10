@@ -59,6 +59,7 @@ echo/
 │   ├── agent.py              # 核心 Agent (重要！)
 │   ├── cli.py                # CLI 命令行界面
 │   ├── config.py             # 配置管理
+│   ├── profile.py            # 用户档案管理 (ECHO.md)
 │   ├── knowledge/            # 知识管理模块
 │   │   ├── graph.py          # 知识图谱
 │   │   └── path.py           # 学习路径规划
@@ -211,6 +212,75 @@ results = self.memory.files.search(
     query="如何处理错误"
 )
 ```
+
+### 4. 用户档案管理 (ECHO.md)
+
+Echo 为每个用户维护一个个性化学习档案 `ECHO.md`，存储在 `~/.echo/profiles/{user_id}_ECHO.md`。
+
+**核心设计**：
+- **简要索引**：ECHO.md 只记录关键摘要信息（偏好、技能树、兴趣）
+- **查询指南**：包含 Python 代码示例，指导如何查询详细数据
+- **详细数据**：存储在 NeuroMemory 后端（PostgreSQL + pgvector）
+
+**使用方式**：
+```python
+from echo.profile import UserProfile
+
+# 初始化档案管理器
+profile = UserProfile(memory=client, user_id="alice")
+
+# 生成档案
+content = profile.generate(user_name="Alice")
+
+# 保存到文件
+profile.save(user_name="Alice")
+
+# 更新档案
+profile.update(user_name="Alice")
+
+# 读取档案
+content = profile.load()
+```
+
+**在 Agent 中使用**：
+```python
+class EchoAgent:
+    def __init__(self, user_id: str, user_name: str = None):
+        # ... 初始化其他组件 ...
+
+        # 初始化档案
+        self.profile = UserProfile(self.memory, user_id)
+        self.profile_content = self.profile.load()  # 快速加载上下文
+
+    def chat(self, message: str) -> str:
+        # ... 处理对话 ...
+
+        # 每 10 次对话自动更新档案
+        if self._conversation_count % 10 == 0:
+            self.update_profile()
+```
+
+**CLI 命令**：
+```bash
+# 查看档案
+echo profile
+
+# 更新档案
+echo profile --update
+
+# 仅显示文件路径
+echo profile --path
+```
+
+**ECHO.md 结构**：
+- 基本信息（user_id, 创建/更新时间）
+- 学习偏好（风格、语言、时间）
+- 技能树（已掌握 ✅、学习中 📚、计划学习 📋）
+- 兴趣领域
+- 学习统计（资源数、知识点数、学习天数）
+- **记忆查询指南**（重要！教 Agent 如何查询详细数据）
+- 重要笔记
+- 当前学习重点
 
 ### 4. Prompt 工程
 

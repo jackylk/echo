@@ -176,5 +176,57 @@ def progress(
         agent.close()
 
 
+@app.command()
+def profile(
+    user_id: str = typer.Option(None, help="User ID"),
+    user_name: str = typer.Option(None, help="User display name"),
+    update: bool = typer.Option(False, "--update", "-u", help="Update profile from NeuroMemory"),
+    show: bool = typer.Option(True, "--show", "-s", help="Show profile content"),
+    path_only: bool = typer.Option(False, "--path", "-p", help="Show only the profile path"),
+):
+    """Manage user profile (ECHO.md)"""
+    settings = get_settings()
+    user_id = user_id or settings.echo_user_id
+
+    agent = EchoAgent(user_id=user_id, user_name=user_name)
+
+    try:
+        if path_only:
+            # Just show the profile path
+            console.print(f"[blue]Profile location:[/blue] {agent.get_profile_path()}")
+            return
+
+        if update:
+            # Update profile from NeuroMemory
+            console.print("[blue]Updating profile from NeuroMemory...[/blue]")
+            profile_path = agent.update_profile()
+
+            if profile_path:
+                console.print(Panel.fit(
+                    f"[bold green]Profile Updated![/bold green]\n"
+                    f"Location: {profile_path}",
+                    border_style="green"
+                ))
+            else:
+                console.print("[yellow]Profile update failed. See logs for details.[/yellow]")
+
+        if show:
+            # Show profile content
+            content = agent.profile_content
+
+            if content:
+                console.print("\n")
+                console.print(Markdown(content))
+                console.print("\n")
+            else:
+                console.print("[yellow]No profile found. Use --update to create one.[/yellow]")
+
+    except Exception as e:
+        console.print(f"[red]Error: {e}[/red]")
+        raise typer.Exit(1)
+    finally:
+        agent.close()
+
+
 if __name__ == "__main__":
     app()
