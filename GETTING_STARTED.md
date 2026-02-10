@@ -286,7 +286,7 @@ files = client.files.list(user_id="test_user")
 
 ### GitHub
 - Echo: https://github.com/jackylk/echo
-- NeuroMemory: (待添加)
+- NeuroMemory: https://github.com/zhuqingxun/NeuroMemory
 
 ### 文档
 - [NeuroMemory 高层 API 设计](/Users/jacky/code/NeuroMemory/docs/HIGH_LEVEL_API_DESIGN.md)

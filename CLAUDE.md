@@ -14,6 +14,7 @@
 
 ### NeuroMemory (记忆系统)
 
+**GitHub**: https://github.com/zhuqingxun/NeuroMemory
 **项目位置**: `/Users/jacky/code/NeuroMemory`
 
 **作用**: Echo 的记忆和存储后端，提供：

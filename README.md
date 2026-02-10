@@ -294,6 +294,11 @@ Echo 充分利用 NeuroMemory 的能力：
 - [ ] 复习提醒系统
 - [ ] 社区功能（分享知识图谱）
 
+## 相关项目
+
+- **Echo**: https://github.com/jackylk/echo - AI 个人学习助理
+- **NeuroMemory**: https://github.com/zhuqingxun/NeuroMemory - 通用记忆管理系统
+
 ## 贡献指南
 
 欢迎贡献！请查看 [CONTRIBUTING.md](CONTRIBUTING.md)
